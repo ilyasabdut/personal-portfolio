@@ -1,0 +1,102 @@
+<div x-data="chatStream()" class="chat-box">
+  <div class="chat-header" @click="toggleChat">
+    <h3 class="chat-title">Ask Me!</h3>
+    <button id="chat-toggle-btn" class="chat-toggle-btn">_</button>
+  </div>
+
+  <div id="chat-body" class="chat-body">
+    <div id="messages" class="chat-messages" x-ref="messages">
+      <template x-for="msg in messages" :key="msg.id">
+        <div class="bubble" :class="msg.type">
+          <template x-if="msg.content === 'typing...'">
+            <div class="dot-typing">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </template>
+          <template x-if="msg.content !== 'typing...'">
+            <span x-text="msg.content"></span>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+  
+    <form @submit.prevent="sendMessage" class="chat-form">
+      <input x-model="input" type="text" placeholder="Type your message..." required class="chat-input" />
+    </form>
+  </div>
+</div>
+
+<script>
+  function chatStream() {
+    return {
+      input: '',
+      messages: [],
+      toggleChat() {
+        const body = document.getElementById("chat-body");
+        const btn = document.getElementById("chat-toggle-btn");
+        const isHidden = body.style.display === "none";
+        body.style.display = isHidden ? "block" : "none";
+        btn.textContent = isHidden ? "_" : "🗖";
+      },
+      async sendMessage() {
+  const msg = this.input.trim();
+  if (!msg) return;
+
+  this.input = '';
+  const userId = Date.now();
+  this.messages.push({ id: userId, type: 'user-bubble', content: msg });
+
+  const llmId = userId + 1;
+  this.messages.push({ id: llmId, type: 'llm-bubble', content: 'typing...' });
+
+  try {
+    const response = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ message: msg })
+    });
+
+    if (!response.ok) {
+      this.messages.find(m => m.id === llmId).content = "⚠️ Error: AI failed to respond.";
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let llmMsg = '';
+    let typingCleared = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      llmMsg += chunk;
+
+      const msgObj = this.messages.find(m => m.id === llmId);
+
+      // Only clear the typing message once
+      if (!typingCleared && msgObj.content === 'typing...') {
+        msgObj.content = '';
+        typingCleared = true;
+      }
+
+      msgObj.content = llmMsg;
+
+      this.$nextTick(() => {
+        this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
+      });
+    }
+
+  } catch (err) {
+    console.error("Stream error:", err);
+    this.messages.find(m => m.id === llmId).content = "⚠️ Network error. Try again.";
+  }
+}
+
+    }
+  }
+</script>
