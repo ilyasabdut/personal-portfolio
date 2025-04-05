@@ -37,12 +37,18 @@ A personal portfolio site built using **Go**, **HTML**, **HTMX**, **SQLite**, an
    - Separated layout and partial templates for maintainability  
    ✅ Completed
 
-7. **README and Documentation**  
+7. **UI & Design Polishing**  
+   - Added dark mode toggle  
+   - Included SVG icons for social/contact links  
+   - Improved semantic HTML and layout  
+   ✅ Completed
+
+8. **README and Documentation**  
    - Creating documentation with setup instructions  
    - Describing project features and usage  
-   🟡 In Progress
+   ✅ Completed
 
-8. **Further Enhancements (Planned)**  
+9. **Further Enhancements (Planned)**  
    - Admin UI to add/edit projects  
    - Tag or stack-based filtering  
    - Export/import database functionality  
@@ -108,12 +114,13 @@ personal-portfolio/
 
 ## ✨ Features
 
-- Minimalistic layout and CSS
-- Dark mode toggle
-- SQLite-backed project list
-- Real-time search with HTMX
-- Clean Go backend with modular code
-- Dockerized for easy deployment
+- ⚡ Minimalistic layout and CSS
+- 🌗 Dark mode toggle with localStorage persistence
+- 📁 SQLite-backed project list
+- 🔍 Real-time search using HTMX
+- 🔧 Clean and modular Go backend
+- 🐳 Dockerized for easy deployment
+- 🖼️ SVG icons for contact section
 
 ---
 
@@ -121,7 +128,8 @@ personal-portfolio/
 
 - `data.sqlite` is used for persistence.  
 - You **can commit** the database if you want to share sample data — otherwise add it to `.gitignore`.  
-- UI components are written manually, no external frontend framework.  
+- UI components are built manually using semantic HTML and lightweight CSS.  
+- No frontend frameworks used (no Tailwind, Bootstrap, etc.).
 
 ---
 
