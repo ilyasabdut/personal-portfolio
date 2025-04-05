@@ -1,3 +1,4 @@
 *.sqlite
 *.db
 sqlite/data.db
+*.sql

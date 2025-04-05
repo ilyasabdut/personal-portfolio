@@ -9,6 +9,6 @@ services:
     volumes:
       - ./sqlite:/app/sqlite
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
-      - PORT=8080
+      - PORT=8081

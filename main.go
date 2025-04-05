@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -22,6 +21,6 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 
-	fmt.Println("Running server at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Running server at http://0.0.0.0:8081")
+	http.ListenAndServe("0.0.0.0:8081", nil)
 }

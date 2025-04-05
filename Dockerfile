@@ -28,5 +28,5 @@ COPY --from=builder /app/server .
 COPY --from=builder /app/static ./static
 COPY --from=builder /app/templates ./templates
 
-EXPOSE 8080
+EXPOSE 8081
 CMD ["./server"]

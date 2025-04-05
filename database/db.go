@@ -16,14 +16,15 @@ func InitDB() {
 	}
 
 	log.Println("Connected to SQLite database")
-	
+
 	createTable := `
 	CREATE TABLE IF NOT EXISTS projects (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		tech_stack TEXT NOT NULL,
 		deployed TEXT NOT NULL,
-		description TEXT
+		description TEXT,
+		link TEXT
 	);
 	`
 	_, err = DB.Exec(createTable)

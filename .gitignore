@@ -14,6 +14,7 @@
 *.db
 *.sqlite
 *.sqlite3
+*.sql
 
 # Go workspace
 *.mod
@@ -36,3 +37,5 @@ vendor/
 
 # Node (if you ever use it for frontend stuff)
 node_modules/
+
+*.sh
