@@ -1,12 +1,13 @@
 version: '3.8'
 
 services:
-  backend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: registry.ilyasabdut.loseyourip.com/personal-portfolio:latest
     volumes:
-      - ./sqlite:/app/data
+      - ./sqlite:/app/sqlite
     ports:
       - "8080:8080"
     environment:
