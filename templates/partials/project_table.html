@@ -1,0 +1,31 @@
+{{ define "project_table" }}
+
+<section>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <h2>Portfolio</h2>
+      <input 
+      type="text" 
+      name="search" 
+      id="search" 
+      placeholder="Search projects..." 
+      hx-get="/search" 
+      hx-trigger="keyup changed delay:300ms" 
+      hx-target="#project-table-body" 
+      hx-swap="outerHTML"
+    />
+  </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Tech Stack</th>
+          <th>Deployed</th>
+          <th>Description</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      {{ template "project_list" . }}
+    </table>
+  </section>
+  {{ end }}
