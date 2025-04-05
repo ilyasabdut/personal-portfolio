@@ -1,0 +1,21 @@
+{{ define "project_list" }}
+    <tbody id="project-table-body">
+      {{ range .Projects }}
+      <tr>
+        <td>{{ .Name }}</td>
+        <td>{{ .TechStack }}</td>
+        <td>{{ .Deployed }}</td>
+        <td>{{ .Description }}</td>
+        <td>
+          {{ if .Link }}
+            <a href="{{ .Link }}" target="_blank">View</a>
+          {{ else }}
+            -
+          {{ end }}
+        </td>        
+      </tr>
+      {{ else }}
+      <tr><td colspan="4">No projects found.</td></tr>
+      {{ end }}
+    </tbody>
+{{ end }}

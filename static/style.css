@@ -1,0 +1,70 @@
+:root {
+    --bg: #fff;
+    --text: #111;
+    --link: #0066cc;
+    --table-border: #ccc;
+  }
+  
+  .dark-mode {
+    --bg: #111;
+    --text: #eee;
+    --link: #66aaff;
+    --table-border: #444;
+  }
+  
+  body {
+    margin: 0;
+    padding: 2rem;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  
+  main {
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  a {
+    color: var(--link);
+    text-decoration: underline;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0;
+  }
+  
+  thead {
+    border-bottom: 2px solid var(--table-border);
+  }
+  
+  .toggle-btn {
+    background: none;
+    border: 1px solid var(--text);
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .toggle-icon {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.3rem 0.6rem;
+    user-select: none;
+  }
+    

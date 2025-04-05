@@ -1,0 +1,38 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of the Go build tool
+/dist
+/bin
+/build
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Go workspace
+*.mod
+*.sum
+
+# Dependency directories (Go Modules)
+vendor/
+
+# Editor & OS junk
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+*.log
+
+# If you use environment variables
+.env
+.env.local
+
+# Node (if you ever use it for frontend stuff)
+node_modules/
