@@ -2,9 +2,9 @@ package utils
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
-	"log"
 )
 
 func RenderTemplate(w http.ResponseWriter, page string, data interface{}) {
@@ -14,7 +14,7 @@ func RenderTemplate(w http.ResponseWriter, page string, data interface{}) {
 		filepath.Join("templates", "layout.html"),
 		filepath.Join("templates", page+".html"),
 	}, partials...)
-	
+
 	tmpl, err := template.ParseFiles(files...)
 	if err != nil {
 		log.Println("Error parsing templates:", err)
