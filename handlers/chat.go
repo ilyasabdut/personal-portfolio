@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"os"
 	"log"
 	"net/http"
 )
@@ -16,6 +17,12 @@ type llmPayload struct {
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	aiURL := os.Getenv("AI_URL")
+	if aiURL == "" {
+		fmt.Println("AI_URL environment variable not set")
+		return
+	}
+
 	message := r.FormValue("message")
 	log.Printf("[ChatHandler] Received message: %s", message)
 
@@ -32,7 +39,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	body, _ := json.Marshal(payload)
 	log.Printf("[ChatHandler] Payload: %s", string(body))
 
-	req, err := http.NewRequest("POST", "http://localhost:8000/api/v1/chat", bytes.NewBuffer(body))
+	req, err := http.NewRequest("POST", aiURL+"/api/v1/chat", bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("[ChatHandler] Failed to create request: %v", err)
 		writeStreamError(w)

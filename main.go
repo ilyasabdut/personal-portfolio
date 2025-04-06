@@ -1,14 +1,22 @@
 package main
 
 import (
+	"os"
 	"log"
-	"net/http"
+	"net/http"	
+	"github.com/joho/godotenv"
 
 	"portfolio/database"
 	"portfolio/handlers"
 )
 
 func main() {
+	if os.Getenv("APP_ENV") == "" || os.Getenv("APP_ENV") == "local" {
+        if err := godotenv.Load(); err != nil {
+            log.Fatal("Error loading .env file")
+        }
+    }
+
 	database.InitDB()
 	defer database.CloseDB()
 
