@@ -1,10 +1,10 @@
 package main
 
 import (
-	"os"
-	"log"
-	"net/http"	
 	"github.com/joho/godotenv"
+	"log"
+	"net/http"
+	"os"
 
 	"portfolio/database"
 	"portfolio/handlers"
@@ -12,10 +12,10 @@ import (
 
 func main() {
 	if os.Getenv("APP_ENV") == "" || os.Getenv("APP_ENV") == "local" {
-        if err := godotenv.Load(); err != nil {
-            log.Fatal("Error loading .env file")
-        }
-    }
+		if err := godotenv.Load(); err != nil {
+			log.Fatal("Error loading .env file")
+		}
+	}
 
 	database.InitDB()
 	defer database.CloseDB()

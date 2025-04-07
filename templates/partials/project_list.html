@@ -2,18 +2,22 @@
     <tbody id="project-table-body">
       {{ range .Projects }}
       <tr>
-        <td>{{ .Name }}</td>
-        <td>{{ .TechStack }}</td>
-        <td>{{ .Deployed }}</td>
-        <td>{{ .Description }}</td>
-        <td>
-          {{ if .Link }}
-            <a href="{{ .Link }}" target="_blank">View</a>
-          {{ else }}
-            -
-          {{ end }}
-        </td>        
-      </tr>
+        <td data-label="Project Name">{{ .Name }}</td>
+        <td data-label="Tech Stack">{{ .TechStack }}</td>
+        <td data-label="Deployed">{{ .Deployed }}</td>
+        <td data-label="Description">{{ .Description }}</td>
+        <td data-label="Github Link">
+          {{ if .GithubUrl }}
+            <a href="{{ .GithubUrl }}" target="_blank">Github Link</a>
+          {{ else }} - {{ end }}
+        </td>
+        <td data-label="Link">
+          {{ if .Url }}
+            <a href="{{ .Url }}" target="_blank">Link</a>
+          {{ else }} - {{ end }}
+        </td>
+        <td data-label="Year Created">{{ .Year }}</td>
+              </tr>
       {{ else }}
       <tr><td colspan="4">No projects found.</td></tr>
       {{ end }}

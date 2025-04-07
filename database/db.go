@@ -24,7 +24,9 @@ func InitDB() {
 		tech_stack TEXT NOT NULL,
 		deployed TEXT NOT NULL,
 		description TEXT,
-		link TEXT
+		github_url TEXT,
+		url TEXT,
+		year INTEGER
 	);
 	`
 	_, err = DB.Exec(createTable)

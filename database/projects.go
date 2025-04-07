@@ -6,11 +6,13 @@ type Project struct {
 	TechStack   string
 	Deployed    string
 	Description string
-	Link        string
+	GithubUrl   string
+	Url 	    string
+	Year 	    string
 }
 
 func GetAllProjects() ([]Project, error) {
-	rows, err := DB.Query("SELECT id, name, tech_stack, deployed, description, link FROM projects")
+	rows, err := DB.Query("SELECT id, name, tech_stack, deployed, description, github_url, url, year FROM projects")
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +21,7 @@ func GetAllProjects() ([]Project, error) {
 	var projects []Project
 	for rows.Next() {
 		var p Project
-		if err := rows.Scan(&p.ID, &p.Name, &p.TechStack, &p.Deployed, &p.Description, &p.Link); err != nil {
+		if err := rows.Scan(&p.ID, &p.Name, &p.TechStack, &p.Deployed, &p.Description, &p.GithubUrl, &p.Url, &p.Year); err != nil {
 			return nil, err
 		}
 		projects = append(projects, p)
@@ -28,7 +30,7 @@ func GetAllProjects() ([]Project, error) {
 }
 
 func SearchProjects(query string) ([]Project, error) {
-	sql := `SELECT id, name, tech_stack, deployed, description, link 
+	sql := `SELECT id, name, tech_stack, deployed, description, github_url, url 
 	        FROM projects 
 	        WHERE name LIKE ? OR tech_stack LIKE ? OR description LIKE ?`
 
@@ -41,7 +43,7 @@ func SearchProjects(query string) ([]Project, error) {
 	var projects []Project
 	for rows.Next() {
 		var p Project
-		err := rows.Scan(&p.ID, &p.Name, &p.TechStack, &p.Deployed, &p.Description, &p.Link)
+		err := rows.Scan(&p.ID, &p.Name, &p.TechStack, &p.Deployed, &p.Description, &p.GithubUrl, &p.Url, &p.Year)
 		if err != nil {
 			return nil, err
 		}
