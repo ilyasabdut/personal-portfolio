@@ -7,8 +7,8 @@ type Project struct {
 	Deployed    string
 	Description string
 	GithubUrl   string
-	Url 	    string
-	Year 	    string
+	Url         string
+	Year        string
 }
 
 func GetAllProjects() ([]Project, error) {
