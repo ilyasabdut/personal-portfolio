@@ -7,17 +7,26 @@
         <td data-label="Deployed">{{ .Deployed }}</td>
         <td data-label="Description">{{ .Description }}</td>
         <td data-label="Github Link">
-          {{ if .GithubUrl }}
+          {{ if and .GithubUrl (ne .GithubUrl "-") (ne .GithubUrl "private") }}
             <a href="{{ .GithubUrl }}" target="_blank">Github Link</a>
-          {{ else }} - {{ end }}
+          {{ else if eq .GithubUrl "private" }}
+            🔒 Private
+          {{ else }}
+            -
+          {{ end }}
         </td>
+        
         <td data-label="Link">
-          {{ if .Url }}
+          {{ if and .Url (ne .Url "-") (ne .Url "private") }}
             <a href="{{ .Url }}" target="_blank">Link</a>
-          {{ else }} - {{ end }}
+          {{ else if eq .Url "private" }}
+           Private
+          {{ else }}
+            -
+          {{ end }}
         </td>
         <td data-label="Year Created">{{ .Year }}</td>
-              </tr>
+      </tr>
       {{ else }}
       <tr><td colspan="4">No projects found.</td></tr>
       {{ end }}
