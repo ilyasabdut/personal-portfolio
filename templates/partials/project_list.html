@@ -9,23 +9,19 @@
         <td data-label="Github Link">
           {{ if and .GithubUrl (ne .GithubUrl "-") (ne .GithubUrl "private") }}
             <a href="{{ .GithubUrl }}" target="_blank">Github Link</a>
-          {{ else if eq .GithubUrl "private" }}
-            🔒 Private
           {{ else }}
-            -
+            Private
           {{ end }}
         </td>
         
         <td data-label="Link">
           {{ if and .Url (ne .Url "-") (ne .Url "private") }}
             <a href="{{ .Url }}" target="_blank">Link</a>
-          {{ else if eq .Url "private" }}
-           Private
           {{ else }}
-            -
+            Private
           {{ end }}
         </td>
-        <td data-label="Year Created">{{ .Year }}</td>
+                <td data-label="Year Created">{{ .Year }}</td>
       </tr>
       {{ else }}
       <tr><td colspan="4">No projects found.</td></tr>
