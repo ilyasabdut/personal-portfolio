@@ -12,12 +12,15 @@ import (
 )
 
 type llmPayload struct {
-	Message string `json:"message"`
-	Stream  bool   `json:"stream"`
+	Message  string  `json:"message"`
+	Stream   bool    `json:"stream"`
+	LLMModel *string `json:"use_model,omitempty"`
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	aiURL := os.Getenv("AI_URL")
+	llmModel := os.Getenv("LLM_MODEL")
+
 	if aiURL == "" {
 		fmt.Println("AI_URL environment variable not set")
 		return
@@ -35,7 +38,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Prepare request to local LLM API
-	payload := llmPayload{Message: message, Stream: true}
+	payload := llmPayload{Message: message, Stream: true, LLMModel: &llmModel}
 	body, _ := json.Marshal(payload)
 	log.Printf("[ChatHandler] Payload: %s", string(body))
 
@@ -58,8 +61,12 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("[ChatHandler] LLM responded with status: %d", resp.StatusCode)
 
-	// Start streaming raw chunks (escaped)
-	w.Header().Set("Content-Type", "text/plain")
+	// Set SSE headers
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no") // Helps with Nginx proxy buffering
+
 	buf := make([]byte, 1024)
 
 	for {
@@ -74,7 +81,8 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 					content := bytes.TrimPrefix(line, []byte("data: "))
 					escaped := html.EscapeString(string(content))
 					log.Printf("[ChatHandler] Streaming data: %s", escaped)
-					fmt.Fprint(w, escaped)
+					// Format as proper SSE event
+					fmt.Fprintf(w, "data: %s\n\n", escaped)
 					flusher.Flush()
 				}
 			}
@@ -82,10 +90,16 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 		if err == io.EOF {
 			log.Println("[ChatHandler] Finished streaming (EOF)")
+			// Send complete event to signal end of stream
+			fmt.Fprintf(w, "event: complete\ndata: \n\n")
+			flusher.Flush()
 			break
 		}
 		if err != nil {
 			log.Printf("[ChatHandler] Error while reading stream: %v", err)
+			// Send error event
+			fmt.Fprintf(w, "event: error\ndata: Stream reading error\n\n")
+			flusher.Flush()
 			break
 		}
 	}
@@ -93,6 +107,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 func writeStreamError(w http.ResponseWriter) {
 	log.Println("[ChatHandler] Writing stream error fallback")
+	w.Header().Set("Content-Type", "text/event-stream")
 	w.WriteHeader(http.StatusInternalServerError)
-	fmt.Fprint(w, "⚠️ Something went wrong while getting a response.")
+	fmt.Fprintf(w, "event: error\ndata: Something went wrong while getting a response.\n\n")
 }

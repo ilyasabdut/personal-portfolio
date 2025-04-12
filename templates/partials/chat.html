@@ -34,6 +34,8 @@
     return {
       input: '',
       messages: [],
+      eventSource: null,
+      
       toggleChat() {
         const body = document.getElementById("chat-body");
         const btn = document.getElementById("chat-toggle-btn");
@@ -41,7 +43,8 @@
         body.style.display = isHidden ? "block" : "none";
         btn.textContent = isHidden ? "_" : "🗖";
       },
-      async sendMessage() {
+      
+      sendMessage() {
         const msg = this.input.trim();
         if (!msg) return;
 
@@ -57,52 +60,52 @@
 
         const llmId = userId + 1;
         this.messages.push({ id: llmId, type: 'llm-bubble', content: 'typing...' });
-
-        try {
-          const response = await fetch('/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ message: msg })
-          });
-
-          if (!response.ok) {
-            this.messages.find(m => m.id === llmId).content = "⚠️ Error: AI failed to respond.";
-            return;
-          }
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let llmMsg = '';
-          let typingCleared = false;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value);
-            llmMsg += decodeHTML(chunk);
-
-            const msgObj = this.messages.find(m => m.id === llmId);
-
-            if (!typingCleared && msgObj.content === 'typing...') {
-              msgObj.content = '';
-              typingCleared = true;
-            }
-
-            msgObj.content = decodeHTML(llmMsg);
-
-            this.$nextTick(() => {
-              requestAnimationFrame(() => {
-                const last = document.getElementById(`msg-${llmId}`);
-                last?.scrollIntoView({ behavior: 'auto' });
-              });
-            });
-          }
-
-        } catch (err) {
-          console.error("Stream error:", err);
-          this.messages.find(m => m.id === llmId).content = "⚠️ Network error. Try again.";
+        
+        // Close any existing connection
+        if (this.eventSource) {
+          this.eventSource.close();
         }
+        
+        // Setup SSE connection
+        const queryParams = new URLSearchParams({ message: msg }).toString();
+        this.eventSource = new EventSource(`/chat?${queryParams}`);
+        
+        let llmMsg = '';
+        let typingCleared = false;
+        
+        this.eventSource.onmessage = (event) => {
+          const chunk = event.data;
+          llmMsg += decodeHTML(chunk);
+          
+          const msgObj = this.messages.find(m => m.id === llmId);
+          
+          if (!typingCleared && msgObj.content === 'typing...') {
+            msgObj.content = '';
+            typingCleared = true;
+          }
+          
+          msgObj.content = decodeHTML(llmMsg);
+          
+          this.$nextTick(() => {
+            requestAnimationFrame(() => {
+              const last = document.getElementById(`msg-${llmId}`);
+              last?.scrollIntoView({ behavior: 'auto' });
+            });
+          });
+        };
+        
+        this.eventSource.addEventListener('complete', () => {
+          this.eventSource.close();
+        });
+        
+        this.eventSource.addEventListener('error', (event) => {
+          console.error("SSE error:", event);
+          const msgObj = this.messages.find(m => m.id === llmId);
+          if (msgObj.content === 'typing...') {
+            msgObj.content = "⚠️ Network error. Try again.";
+          }
+          this.eventSource.close();
+        });
       }
     }
   }
@@ -112,5 +115,4 @@
     txt.innerHTML = html;
     return txt.value;
   }
-
 </script>
