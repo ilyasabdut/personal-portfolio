@@ -39,12 +39,8 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            bash -lc '
-              set -ex
-              cd /home/ubuntu/composes/portfolio-ai
-              echo "PWD: $(pwd)"
-              command -v login-docker-private || echo "login-docker-private not found"
-              command -v docker-restart || echo "docker-restart not found"
-              login-docker-private
-              docker-restart
-            '
+            echo "Restarting Docker container..."
+            cd /home/ubuntu/composes/portfolio-ai
+            echo "current directory:"
+            pwd
+            login-docker-private && docker-restart
