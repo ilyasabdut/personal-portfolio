@@ -46,7 +46,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_TAILSCALE_IP }} << 'EOF'
           set -ex
           echo "Deploying on $(hostname)"
-          cd /composes/portfolio
+          cd /home/ubuntu/composes/portfolio
 
           echo "Logging into Docker registry..."
           echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
