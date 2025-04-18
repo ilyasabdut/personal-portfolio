@@ -33,6 +33,7 @@ jobs:
           # oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           # tags: tag:ci
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: tag:ci
 
       - name: Add SSH private key
         run: |
