@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 	"os"
 )
 
@@ -48,8 +49,10 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("LLM_MODEL", llmModel)
-
+	if llmModel != "" {	
+		req.Header.Set("LLM_MODEL", llmModel)
+	}
+	
 	client := &http.Client{Timeout: 0}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -66,6 +69,9 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("X-Accel-Buffering", "no") // Helps with Nginx proxy buffering
+
+	fmt.Fprint(w, ": Connected\n\n")
+    flusher.Flush()
 
 	buf := make([]byte, 1024)
 
@@ -84,6 +90,9 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 					// Format as proper SSE event
 					fmt.Fprintf(w, "data: %s\n\n", escaped)
 					flusher.Flush()
+
+					time.Sleep(10 * time.Millisecond)
+
 				}
 			}
 		}

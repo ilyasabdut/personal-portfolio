@@ -4,7 +4,7 @@
     <button id="chat-toggle-btn" class="chat-toggle-btn">🗖</button>
   </div>
 
-  <div id="chat-body" class="chat-body" style="display: none;">
+  <div id="chat-body" class="chat-body">
     <div id="messages" class="chat-messages" x-ref="messages">
       <template x-for="msg in messages" :key="msg.id">
         <div class="bubble" :class="msg.type" :id="'msg-' + msg.id">
@@ -16,13 +16,12 @@
             </div>
           </template>
           <template x-if="msg.content !== 'typing...'">
-            <span x-text="msg.content"></span>
+            <span x-html="msg.content"></span>
           </template>
         </div>
       </template>
     </div>
 
-    <!-- Chat input moved inside the chat body -->
     <form @submit.prevent="sendMessage" class="chat-form">
       <input x-model="input" type="text" placeholder="Type your message..." required class="chat-input" />
     </form>
@@ -44,6 +43,12 @@
         btn.textContent = isHidden ? "_" : "🗖";
       },
       
+      decodeHTML(html) {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+      },
+      
       sendMessage() {
         const msg = this.input.trim();
         if (!msg) return;
@@ -53,9 +58,7 @@
         this.messages.push({ id: userId, type: 'user-bubble', content: msg });
 
         this.$nextTick(() => {
-          requestAnimationFrame(() => {
-            this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
-          });
+          this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
         });
 
         const llmId = userId + 1;
@@ -64,55 +67,70 @@
         // Close any existing connection
         if (this.eventSource) {
           this.eventSource.close();
+          this.eventSource = null;
         }
         
-        // Setup SSE connection
+        // Build query parameters properly
         const queryParams = new URLSearchParams({ message: msg }).toString();
-        this.eventSource = new EventSource(`/chat?${queryParams}`);
         
-        let llmMsg = '';
-        let typingCleared = false;
-        
-        this.eventSource.onmessage = (event) => {
-          const chunk = event.data;
-          llmMsg += decodeHTML(chunk);
+        // Create a new EventSource with proper error handling
+        try {
+          this.eventSource = new EventSource(`/chat?${queryParams}`);
           
-          const msgObj = this.messages.find(m => m.id === llmId);
+          let responseText = '';
           
-          if (!typingCleared && msgObj.content === 'typing...') {
-            msgObj.content = '';
-            typingCleared = true;
-          }
-          
-          msgObj.content = decodeHTML(llmMsg);
-          
-          this.$nextTick(() => {
-            requestAnimationFrame(() => {
-              const last = document.getElementById(`msg-${llmId}`);
-              last?.scrollIntoView({ behavior: 'auto' });
+          // Handle regular messages (data events)
+          this.eventSource.onmessage = (event) => {
+            
+            // Clear typing indicator on first message
+            const msgObj = this.messages.find(m => m.id === llmId);
+            if (msgObj.content === 'typing...') {
+              responseText = '';
+              msgObj.content = '';
+            }
+            
+            // Decode HTML entities and append to response
+            const decodedData = this.decodeHTML(event.data);
+            responseText += decodedData;
+            
+            // Update message content
+            msgObj.content = responseText;
+            
+            // Scroll to bottom
+            this.$nextTick(() => {
+              this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
             });
+          };
+          
+          // Handle complete event
+          this.eventSource.addEventListener('complete', (event) => {
+            if (this.eventSource) {
+              this.eventSource.close();
+              this.eventSource = null;
+            }
           });
-        };
-        
-        this.eventSource.addEventListener('complete', () => {
-          this.eventSource.close();
-        });
-        
-        this.eventSource.addEventListener('error', (event) => {
-          console.error("SSE error:", event);
+          
+          // Handle error event
+          this.eventSource.onerror = (event) => {
+            console.error("SSE connection error:", event);
+            const msgObj = this.messages.find(m => m.id === llmId);
+            if (msgObj && msgObj.content === 'typing...') {
+              msgObj.content = "⚠️ Network error. Try again.";
+            }
+            
+            if (this.eventSource) {
+              this.eventSource.close();
+              this.eventSource = null;
+            }
+          };
+        } catch (error) {
+          console.error("Failed to create EventSource:", error);
           const msgObj = this.messages.find(m => m.id === llmId);
-          if (msgObj.content === 'typing...') {
-            msgObj.content = "⚠️ Network error. Try again.";
+          if (msgObj) {
+            msgObj.content = "⚠️ Failed to connect to server.";
           }
-          this.eventSource.close();
-        });
+        }
       }
     }
-  }
-
-  function decodeHTML(html) {
-    const txt = document.createElement("textarea");
-    txt.innerHTML = html;
-    return txt.value;
   }
 </script>
