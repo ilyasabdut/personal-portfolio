@@ -34,29 +34,28 @@ jobs:
           # tags: tag:ci
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
+      - name: Add SSH private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
-      - name: SSH and Restart Container
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.VPS_TAILSCALE_IP }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -ex
-            echo "Deploying on $(hostname)"
-            cd /home/ubuntu/composes/portfolio
+      - name: Deploy to VPS via SSH
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_TAILSCALE_IP }} << 'EOF'
+          set -ex
+          echo "Deploying on $(hostname)"
+          cd /home/ubuntu/composes/portfolio
 
-            echo "Logging into private Docker registry..."
-            echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+          echo "Logging into Docker registry..."
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
 
-            echo "Pulling latest image..."
-            docker compose pull
+          echo "Pulling latest image..."
+          docker compose pull
 
-            echo "Restarting container..."
-            docker compose down
-            docker compose up -d
+          echo "Restarting container..."
+          docker compose down
+          docker compose up -d
 
-            echo "Deployment finished!"
-          debug: true
-          timeout: 60s
-          command_timeout: 10m
+          echo "Deployment complete ✅"
+          EOF
