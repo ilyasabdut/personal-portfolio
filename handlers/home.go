@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"os"
 	"net/http"
+	"os"
 	"portfolio/database"
 	"portfolio/utils"
 )
@@ -16,11 +16,10 @@ func HomePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		Projects []database.Project
-		AppEnv string
-
+		AppEnv   string
 	}{
 		Projects: projects,
-		AppEnv: os.Getenv("APP_ENV"),
+		AppEnv:   os.Getenv("APP_ENV"),
 	}
 
 	utils.RenderTemplate(w, "index", data)

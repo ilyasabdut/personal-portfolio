@@ -12,8 +12,8 @@ import (
 )
 
 type llmPayload struct {
-	Message  string  `json:"message"`
-	Stream   bool    `json:"stream"`
+	Message string `json:"message"`
+	Stream  bool   `json:"stream"`
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
