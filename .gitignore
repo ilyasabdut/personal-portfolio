@@ -16,10 +16,6 @@
 *.sqlite3
 *.sql
 
-# Go workspace
-*.mod
-*.sum
-
 # Dependency directories (Go Modules)
 vendor/
 
