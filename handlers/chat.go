@@ -8,8 +8,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 	"os"
+	"time"
 )
 
 type llmPayload struct {
@@ -49,10 +49,10 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if llmModel != "" {	
+	if llmModel != "" {
 		req.Header.Set("LLM_MODEL", llmModel)
 	}
-	
+
 	client := &http.Client{Timeout: 0}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -71,7 +71,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Accel-Buffering", "no") // Helps with Nginx proxy buffering
 
 	fmt.Fprint(w, ": Connected\n\n")
-    flusher.Flush()
+	flusher.Flush()
 
 	buf := make([]byte, 1024)
 
