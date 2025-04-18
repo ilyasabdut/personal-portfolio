@@ -43,4 +43,8 @@ jobs:
             cd /home/ubuntu/composes/portfolio-ai
             echo "current directory:"
             pwd
-            login-docker-private && docker-restart
+            source ~/.bashrc  # Ensure your functions and aliases are loaded
+            echo "Running login-docker-private"
+            login-docker-private
+            echo "Running docker-restart"
+            docker-restart
