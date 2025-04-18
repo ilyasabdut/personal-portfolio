@@ -22,7 +22,7 @@ jobs:
   #         docker build -t registry.ilyasabdut.loseyourip.com/personal-portfolio:latest . --no-cache --push
 
   deployment:
-    needs: build
+    # needs: build
     runs-on: ubuntu-latest
     environment: master
     steps:
