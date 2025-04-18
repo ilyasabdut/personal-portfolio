@@ -33,7 +33,6 @@ jobs:
           # oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           # tags: tag:ci
           authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-          tags: tag:ci
 
       - name: SSH and Restart Container
         uses: appleboy/ssh-action@v1.0.0
