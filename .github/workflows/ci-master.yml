@@ -39,12 +39,17 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            echo "Restarting Docker container..."
-            cd /home/ubuntu/composes/portfolio-ai
-            echo "current directory:"
-            pwd
-            source ~/.bashrc  # Ensure your functions and aliases are loaded
-            echo "Running login-docker-private"
-            login-docker-private
-            echo "Running docker-restart"
-            docker-restart
+            echo "Deploying on $(hostname)"
+            cd /home/ubuntu/composes/portfolio
+
+            echo "Logging into private Docker registry..."
+            echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
+            echo "Pulling latest image..."
+            docker compose pull
+
+            echo "Restarting container..."
+            docker compose down
+            docker compose up -d
+
+            echo "Deployment finished!"
