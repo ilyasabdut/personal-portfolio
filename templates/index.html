@@ -68,7 +68,10 @@
       {{ template "contact" . }}
     </main>
 
+    {{ if ne .AppEnv "local" }}
     <script defer src="https://umami.ilyasabdut.loseyourip.com/script.js" data-website-id="f50b8cb3-e440-4b61-86da-c96b81faedfd"></script>
+    {{ end }}
+
     <script>  
       function toggleDarkMode() {
           document.body.classList.toggle("dark-mode");

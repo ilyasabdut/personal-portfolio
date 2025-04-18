@@ -14,7 +14,6 @@ import (
 type llmPayload struct {
 	Message  string  `json:"message"`
 	Stream   bool    `json:"stream"`
-	LLMModel *string `json:"use_model,omitempty"`
 }
 
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +37,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Prepare request to local LLM API
-	payload := llmPayload{Message: message, Stream: true, LLMModel: &llmModel}
+	payload := llmPayload{Message: message, Stream: true}
 	body, _ := json.Marshal(payload)
 	log.Printf("[ChatHandler] Payload: %s", string(body))
 
@@ -49,6 +48,7 @@ func ChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("LLM_MODEL", llmModel)
 
 	client := &http.Client{Timeout: 0}
 	resp, err := client.Do(req)
