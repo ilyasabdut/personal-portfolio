@@ -7,7 +7,11 @@ WORKDIR /app
 RUN apk add --no-cache git gcc musl-dev
 
 # Copy and download dependencies
-COPY go.mod go.sum ./
+COPY go.mod go.sum sync_db.sh ./
+COPY sqlite ./sqlite
+
+RUN chmod +x sync_db.sh
+RUN ./sync_db.sh
 RUN go mod download
 
 # Copy source and build

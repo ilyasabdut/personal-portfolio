@@ -26,6 +26,7 @@ func main() {
 
 	// Routes
 	http.HandleFunc("/", handlers.HomePageHandler)
+	http.HandleFunc("/session", handlers.SessionHandler)
 	http.HandleFunc("/search", handlers.SearchProjectsHandler)
 	http.HandleFunc("/chat", handlers.ChatHandler)
 
