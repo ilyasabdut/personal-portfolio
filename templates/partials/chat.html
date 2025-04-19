@@ -29,172 +29,150 @@
 </div>
 
 <script>
+  function chatStream() {
+    return {
+      input: '',
+      messages: [],
+      eventSource: null,
+      sessionId: '',
 
-function chatStream() {
-  return {
-    input: '',
-    messages: [],
-    eventSource: null,
-    sessionId: '',
+      init() {
+        this.sessionId = this.getCookie("session_id");
+        this.loadSession();
+      },
 
-    init() {
-      this.loadSession(); // Load session and messages from localStorage if available
-    },
+      getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+      },
 
-    loadSession() {
-      // Generate a new session ID if none exists in localStorage
-      if (!localStorage.getItem('session_id')) {
-        this.sessionId = this.generateSessionId();
-        localStorage.setItem('session_id', this.sessionId);
-      } else {
-        this.sessionId = localStorage.getItem('session_id');
-      }
+      loadSession() {
+        const key = `chatMessages-${this.sessionId}`;
+        const savedMessages = sessionStorage.getItem(key);
 
-      // Check for messages in localStorage for the current session
-      const savedMessages = localStorage.getItem(`chatMessages-${this.sessionId}`);
-      if (savedMessages) {
-        this.messages = JSON.parse(savedMessages);
-        // Scroll to bottom after loading from storage
+        if (savedMessages) {
+          this.messages = JSON.parse(savedMessages);
+          this.$nextTick(() => {
+            this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
+          });
+          return;
+        }
+
+        fetch("/session", { 
+          credentials: "include",
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.session_id && Array.isArray(data.messages)) {
+            this.messages = data.messages.map((msg, i) => {
+              return {
+                id: Date.now() + i,
+                type: msg.role === "user" ? "user-bubble" : "llm-bubble",
+                content: msg.content
+              };
+            });
+
+            sessionStorage.setItem(key, JSON.stringify(this.messages));
+            this.$nextTick(() => {
+              this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
+            });
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load session:", err);
+        });
+      },
+
+      toggleChat() {
+        const body = document.getElementById("chat-body");
+        const btn = document.getElementById("chat-toggle-btn");
+        const isHidden = body.style.display === "none";
+        body.style.display = isHidden ? "block" : "none";
+        btn.textContent = isHidden ? "_" : "🗖";
+      },
+
+      decodeHTML(html) {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+      },
+
+      sendMessage() {
+        const msg = this.input.trim();
+        if (!msg) return;
+
+        const key = `chatMessages-${this.sessionId}`;
+        this.input = '';
+        const userId = Date.now();
+        this.messages.push({ id: userId, type: 'user-bubble', content: msg });
+        sessionStorage.setItem(key, JSON.stringify(this.messages));
+
         this.$nextTick(() => {
           this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
         });
-      }
 
-      // Fetch session data if messages are not in localStorage
-      fetch("/session", { 
-        credentials: "include",
-        headers: { 'Cache-Control': 'no-cache' }
-      })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.session_id && Array.isArray(data.messages)) {
-          // Merge any new messages with the ones from localStorage
-          this.messages = this.messages.concat(data.messages.map((msg, i) => {
-            const id = Date.now() + i;
-            return { id, type: msg.role === "user" ? "user-bubble" : "llm-bubble", content: msg.content };
-          }));
-          // Save to localStorage for this session
-          localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
+        const llmId = userId + 1;
+        this.messages.push({ id: llmId, type: 'llm-bubble', content: 'typing...' });
+        sessionStorage.setItem(key, JSON.stringify(this.messages));
 
-          // Scroll to bottom after loading
-          this.$nextTick(() => {
-            this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load session:", err);
-      });
-    },
-
-    toggleChat() {
-      const body = document.getElementById("chat-body");
-      const btn = document.getElementById("chat-toggle-btn");
-      const isHidden = body.style.display === "none";
-      body.style.display = isHidden ? "block" : "none";
-      btn.textContent = isHidden ? "_" : "🗖";
-    },
-
-    decodeHTML(html) {
-      const txt = document.createElement("textarea");
-      txt.innerHTML = html;
-      return txt.value;
-    },
-
-    sendMessage() {
-      const msg = this.input.trim();
-      if (!msg) return;
-
-      this.input = '';
-      const userId = Date.now();
-      this.messages.push({ id: userId, type: 'user-bubble', content: msg });
-
-      // Save the updated messages to localStorage
-      localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
-
-      this.$nextTick(() => {
-        this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
-      });
-
-      const llmId = userId + 1;
-      this.messages.push({ id: llmId, type: 'llm-bubble', content: 'typing...' });
-
-      // Save to localStorage again after adding typing indicator
-      localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
-
-      // Close any existing connection
-      if (this.eventSource) {
-        this.eventSource.close();
-        this.eventSource = null;
-      }
-
-      const queryParams = new URLSearchParams({ message: msg }).toString();
-
-      try {
-        this.eventSource = new EventSource(`/chat?${queryParams}`, {
-          withCredentials: true
-        });
-
-        let responseText = '';
-
-        this.eventSource.onmessage = (event) => {
-          const msgObj = this.messages.find(m => m.id === llmId);
-          if (msgObj.content === 'typing...') {
-            responseText = '';
-            msgObj.content = '';
-          }
-
-          const decodedData = this.decodeHTML(event.data);
-          responseText += decodedData;
-
-          msgObj.content = responseText;
-
-          // Save to localStorage every time the message updates
-          localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
-
-          this.$nextTick(() => {
-            this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
-          });
-        };
-
-        this.eventSource.addEventListener('complete', () => {
-          if (this.eventSource) {
-            this.eventSource.close();
-            this.eventSource = null;
-          }
-        });
-
-        this.eventSource.onerror = (event) => {
-          console.error("SSE connection error:", event);
-          const msgObj = this.messages.find(m => m.id === llmId);
-          if (msgObj && msgObj.content === 'typing...') {
-            msgObj.content = "⚠️ Network error. Try again.";
-          }
-
-          if (this.eventSource) {
-            this.eventSource.close();
-            this.eventSource = null;
-          }
-
-          // Save to localStorage after error
-          localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
-        };
-      } catch (error) {
-        console.error("Failed to create EventSource:", error);
-        const msgObj = this.messages.find(m => m.id === llmId);
-        if (msgObj) {
-          msgObj.content = "⚠️ Failed to connect to server.";
+        if (this.eventSource) {
+          this.eventSource.close();
+          this.eventSource = null;
         }
 
-        // Save to localStorage in case of failure
-        localStorage.setItem(`chatMessages-${this.sessionId}`, JSON.stringify(this.messages));
-      }
-    },
+        const queryParams = new URLSearchParams({ message: msg }).toString();
 
-    // Generate a random session ID if needed
-    generateSessionId() {
-      return 'xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, () => (Math.random() * 16 | 0).toString(16));
+        try {
+          this.eventSource = new EventSource(`/chat?${queryParams}`, {
+            withCredentials: true
+          });
+
+          let responseText = '';
+
+          this.eventSource.onmessage = (event) => {
+            const msgObj = this.messages.find(m => m.id === llmId);
+            if (msgObj.content === 'typing...') {
+              responseText = '';
+              msgObj.content = '';
+            }
+
+            const decodedData = this.decodeHTML(event.data);
+            responseText += decodedData;
+            msgObj.content = responseText;
+
+            sessionStorage.setItem(key, JSON.stringify(this.messages));
+            this.$nextTick(() => {
+              this.$refs.messages.scrollTop = this.$refs.messages.scrollHeight;
+            });
+          };
+
+          this.eventSource.addEventListener('complete', () => {
+            this.eventSource?.close();
+            this.eventSource = null;
+          });
+
+          this.eventSource.onerror = (event) => {
+            console.error("SSE connection error:", event);
+            const msgObj = this.messages.find(m => m.id === llmId);
+            if (msgObj && msgObj.content === 'typing...') {
+              msgObj.content = "Network error. Try again.";
+            }
+            this.eventSource?.close();
+            this.eventSource = null;
+            sessionStorage.setItem(key, JSON.stringify(this.messages));
+          };
+        } catch (error) {
+          console.error("Failed to create EventSource:", error);
+          const msgObj = this.messages.find(m => m.id === llmId);
+          if (msgObj) {
+            msgObj.content = "Failed to connect to server.";
+          }
+          sessionStorage.setItem(key, JSON.stringify(this.messages));
+        }
+      }
     }
   }
-}
 </script>
