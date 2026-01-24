@@ -1,11 +1,18 @@
 <div x-data="chatStream()" class="chat-box">
   <div class="chat-header">
-    <div class="header-controls">
-      <button @click.stop="clearChat" class="chat-clear-btn" title="Clear Chat">🗑️</button>
-    </div>
     <div class="header-title" @click="toggleChat">
       <h3 class="chat-title">Ask Me!</h3>
-      <button id="chat-toggle-btn" class="chat-toggle-btn">🗖</button>
+    </div>
+    <div class="header-controls">
+      <button @click.stop="clearChat" class="chat-clear-btn" title="Clear Chat">
+        <template x-if="!confirmingClear">
+          <span>🗑️</span>
+        </template>
+        <template x-if="confirmingClear">
+          <span style="font-size: 0.8rem; font-weight: bold; color: #ff4444;">Clear?</span>
+        </template>
+      </button>
+      <button id="chat-toggle-btn" @click="toggleChat" class="chat-toggle-btn">🗖</button>
     </div>
   </div>
 
@@ -40,6 +47,7 @@
       messages: [],
       eventSource: null,
       sessionId: '',
+      confirmingClear: false,
 
       init() {
         this.sessionId = this.getCookie("session_id");
@@ -92,19 +100,26 @@
       },
 
       clearChat() {
-        if (!confirm("Clear chat history?")) return;
+        if (!this.confirmingClear) {
+          this.confirmingClear = true;
+          setTimeout(() => {
+            this.confirmingClear = false;
+          }, 3000);
+          return;
+        }
 
         fetch("/clear-chat", { method: "POST" })
           .then((res) => {
             if (res.ok) {
               this.messages = [];
               sessionStorage.removeItem(`chatMessages-${this.sessionId}`);
+              this.confirmingClear = false;
               return res.json().catch(() => ({}));
             }
           })
           .then((data) => {
-            if (data && data.session_id) {
-              this.sessionId = data.session_id;
+            if (data && data.new_session_id) {
+              this.sessionId = data.new_session_id;
             }
           })
           .catch((err) => {
