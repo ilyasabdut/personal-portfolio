@@ -8,11 +8,11 @@ import (
 )
 
 func RenderTemplate(w http.ResponseWriter, page string, data interface{}) {
-	partials, _ := filepath.Glob("web/templates/partials/*.html")
+	partials, _ := filepath.Glob(filepath.Join("web", "templates", "partials", "*.html"))
 
 	files := append([]string{
-		filepath.Join("web/templates", "layout.html"),
-		filepath.Join("web/templates", page+".html"),
+		filepath.Join("web", "templates", "layout.html"),
+		filepath.Join("web", "templates", page+".html"),
 	}, partials...)
 
 	tmpl, err := template.ParseFiles(files...)
