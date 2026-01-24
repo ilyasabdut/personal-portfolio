@@ -4,19 +4,22 @@
       <h3 class="chat-title">Ask Me!</h3>
     </div>
     <div class="header-controls">
-      <button @click.stop="clearChat" class="chat-clear-btn" title="Clear Chat">
+      <button @click.stop="clearChat" 
+              class="chat-clear-btn" 
+              :class="{ 'confirming': confirmingClear }"
+              :title="confirmingClear ? 'Click again to confirm' : 'Clear Chat'">
         <template x-if="!confirmingClear">
           <span>🗑️</span>
         </template>
         <template x-if="confirmingClear">
-          <span style="font-size: 0.8rem; font-weight: bold; color: #ff4444;">Clear?</span>
+          <span class="confirm-text">Clear?</span>
         </template>
       </button>
-      <button id="chat-toggle-btn" @click="toggleChat" class="chat-toggle-btn">🗖</button>
+      <button @click="toggleChat" class="chat-toggle-btn" x-text="isExpanded ? '_' : '🗖'"></button>
     </div>
   </div>
 
-  <div id="chat-body" class="chat-body">
+  <div x-show="isExpanded" class="chat-body">
     <div id="messages" class="chat-messages" x-ref="messages">
       <template x-for="msg in messages" :key="msg.id">
         <div class="bubble" :class="msg.type" :id="'msg-' + msg.id">
@@ -48,6 +51,8 @@
       eventSource: null,
       sessionId: '',
       confirmingClear: false,
+      isExpanded: true,
+      clearTimeoutId: null,
 
       init() {
         this.sessionId = this.getCookie("session_id");
@@ -102,10 +107,17 @@
       clearChat() {
         if (!this.confirmingClear) {
           this.confirmingClear = true;
-          setTimeout(() => {
+          if (this.clearTimeoutId) clearTimeout(this.clearTimeoutId);
+          this.clearTimeoutId = setTimeout(() => {
             this.confirmingClear = false;
+            this.clearTimeoutId = null;
           }, 3000);
           return;
+        }
+
+        if (this.clearTimeoutId) {
+          clearTimeout(this.clearTimeoutId);
+          this.clearTimeoutId = null;
         }
 
         fetch("/clear-chat", { method: "POST" })
@@ -124,15 +136,12 @@
           })
           .catch((err) => {
             console.error("Failed to clear chat:", err);
+            this.confirmingClear = false;
           });
       },
 
       toggleChat() {
-        const body = document.getElementById("chat-body");
-        const btn = document.getElementById("chat-toggle-btn");
-        const isHidden = body.style.display === "none";
-        body.style.display = isHidden ? "block" : "none";
-        btn.textContent = isHidden ? "_" : "🗖";
+        this.isExpanded = !this.isExpanded;
       },
 
       decodeHTML(html) {

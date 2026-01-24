@@ -199,7 +199,7 @@ func ClearChatHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    newSessionID,
 		Path:     "/",
 		Expires:  time.Now().Add(24 * time.Hour), // Set reasonable expiration
-		HttpOnly: true,                           // Security best practice
+		HttpOnly: false,                          // JS needs to read this
 	})
 
 	// 5. Return JSON response
