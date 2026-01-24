@@ -30,6 +30,7 @@ func main() {
 	http.HandleFunc("/session", handlers.SessionHandler)
 	http.HandleFunc("/search", handlers.SearchProjectsHandler)
 	http.HandleFunc("/chat", handlers.ChatHandler)
+	http.HandleFunc("/clear-chat", handlers.ClearChatHandler)
 
 	log.Println("Running server at http://0.0.0.0:8081")
 	http.ListenAndServe("0.0.0.0:8081", nil)

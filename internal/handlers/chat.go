@@ -159,3 +159,53 @@ func SessionHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
 }
+
+func ClearChatHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	aiURL := os.Getenv("AI_URL")
+	if aiURL == "" {
+		http.Error(w, "AI_URL environment variable not set", http.StatusInternalServerError)
+		return
+	}
+
+	// 1. Get current session ID from cookie
+	cookie, err := r.Cookie("session_id")
+	if err == nil && cookie.Value != "" {
+		// 2. Call AI Backend to delete session
+		client := &http.Client{Timeout: 10 * time.Second}
+		req, err := http.NewRequest("DELETE", aiURL+"/api/v1/sessions/"+cookie.Value, nil)
+		if err == nil {
+			resp, err := client.Do(req)
+			if err == nil {
+				resp.Body.Close()
+			} else {
+				log.Printf("Failed to delete session on backend: %v", err)
+			}
+		} else {
+			log.Printf("Failed to create delete request: %v", err)
+		}
+	}
+
+	// 3. Generate NEW session ID
+	newSessionID := generate_session_id()
+
+	// 4. Set new cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    newSessionID,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour), // Set reasonable expiration
+		HttpOnly: true,                           // Security best practice
+	})
+
+	// 5. Return JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status":         "cleared",
+		"new_session_id": newSessionID,
+	})
+}
