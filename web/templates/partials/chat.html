@@ -1,7 +1,12 @@
 <div x-data="chatStream()" class="chat-box">
-  <div class="chat-header" @click="toggleChat">
-    <h3 class="chat-title">Ask Me!</h3>
-    <button id="chat-toggle-btn" class="chat-toggle-btn">🗖</button>
+  <div class="chat-header">
+    <div class="header-controls">
+      <button @click.stop="clearChat" class="chat-clear-btn" title="Clear Chat">🗑️</button>
+    </div>
+    <div class="header-title" @click="toggleChat">
+      <h3 class="chat-title">Ask Me!</h3>
+      <button id="chat-toggle-btn" class="chat-toggle-btn">🗖</button>
+    </div>
   </div>
 
   <div id="chat-body" class="chat-body">
@@ -84,6 +89,27 @@
         .catch((err) => {
           console.error("Failed to load session:", err);
         });
+      },
+
+      clearChat() {
+        if (!confirm("Clear chat history?")) return;
+
+        fetch("/clear-chat", { method: "POST" })
+          .then((res) => {
+            if (res.ok) {
+              this.messages = [];
+              sessionStorage.removeItem(`chatMessages-${this.sessionId}`);
+              return res.json().catch(() => ({}));
+            }
+          })
+          .then((data) => {
+            if (data && data.session_id) {
+              this.sessionId = data.session_id;
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to clear chat:", err);
+          });
       },
 
       toggleChat() {
