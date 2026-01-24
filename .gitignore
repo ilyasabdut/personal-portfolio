@@ -37,4 +37,4 @@ node_modules/
 *.sh
 .roomodes
 .roo/
-context_portal/
+context_portal/server

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"portfolio/database"
+	"portfolio/internal/database"
 )
 
 func SearchProjectsHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +17,7 @@ func SearchProjectsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := template.Must(template.ParseFiles(filepath.Join("templates", "partials", "project_list.html")))
+	tmpl := template.Must(template.ParseFiles(filepath.Join("web/templates", "partials", "project_list.html")))
 	tmpl.ExecuteTemplate(w, "project_list", struct {
 		Projects []database.Project
 	}{Projects: projects})

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"portfolio/database"
-	"portfolio/handlers"
+	"portfolio/internal/database"
+	"portfolio/internal/handlers"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	defer database.CloseDB()
 
 	// Static files (optional: if you add CSS, JS, etc.)
-	fs := http.FileServer(http.Dir("static"))
+	fs := http.FileServer(http.Dir("web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Routes

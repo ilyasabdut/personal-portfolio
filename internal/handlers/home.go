@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 	"os"
-	"portfolio/database"
-	"portfolio/utils"
+	"portfolio/internal/database"
+	"portfolio/internal/utils"
 )
 
 func HomePageHandler(w http.ResponseWriter, r *http.Request) {
