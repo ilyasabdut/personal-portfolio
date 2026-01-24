@@ -27,3 +27,19 @@
 - Moved `database/` → `internal/database/`
 - Moved `utils/` → `internal/utils/`
 - Moved `static/` & `templates/` → `web/`
+
+## Feature: Clear Chat & UI Overhaul
+
+### ✨ Features
+- **Clear Chat**: Added a trash icon to the chat header to wipe conversation history from both the local UI and the AI backend.
+- **Two-Step Confirmation**: Implemented a non-intrusive "Click again to confirm" mechanism for clearing chat, replacing browser alerts.
+
+### 🎨 UI & UX Improvements
+- **Minimal Redesign**: Overhauled the chat interface with cleaner alignment, boxy bubbles to match the site's aesthetic, and hover-only controls.
+- **Alpine.js Refactor**: Improved component logic using idiomatic Alpine.js state management and safe timer handling.
+- **DRY CSS**: Refactored `style.css` to unify input styles and remove redundant rules.
+
+### 🛠️ Improvements & Fixes
+- **Backend Handler**: Added a Go handler for session deletion with automatic new-session cookie generation.
+- **Cookie Accessibility**: Set `HttpOnly: false` for the `session_id` cookie to allow frontend initialization.
+
